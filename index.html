@@ -380,8 +380,8 @@
         }
 
         function startMusic() {
-            initAudio();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // Always create a fresh AudioContext so scheduled nodes don't linger
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             musicPlaying = true;
             barIndex = 0;
             scheduleBar();
@@ -393,6 +393,11 @@
         function stopMusic() {
             musicPlaying = false;
             clearInterval(musicInterval);
+            // Close the AudioContext to immediately kill all scheduled sounds
+            if (audioCtx) {
+                audioCtx.close();
+                audioCtx = null;
+            }
             musicBtn.textContent = '\u266B 80s Vibes: OFF';
             musicBtn.classList.remove('active');
         }
