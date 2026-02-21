@@ -125,6 +125,33 @@
             animation: pulse 0.6s ease-in-out;
         }
 
+        /* Confetti particles */
+        .confetti {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            animation: confetti-fly 0.8s ease-out forwards;
+        }
+
+        @keyframes confetti-fly {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.2); }
+        }
+
+        /* Shake indicator */
+        .shake-hint {
+            color: rgba(255,255,255,0.3);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 24px;
+            text-align: center;
+        }
+
         @media (max-width: 600px) {
             h1 {
                 font-size: 1.1rem;
@@ -147,6 +174,7 @@
     <h1>Jessie & Charlie's Soundboard</h1>
     <button class="music-toggle" id="musicToggle">&#9835; 80s Vibes: OFF</button>
     <div class="grid" id="soundboard"></div>
+    <div class="shake-hint" id="shakeHint"></div>
 
     <script>
         const NEON_COLORS = [
@@ -193,7 +221,42 @@
             grid.appendChild(btn);
         });
 
+        // ─── Neon Confetti Explosion ───
+        function spawnConfetti(btn) {
+            const rect = btn.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const color = getComputedStyle(btn).getPropertyValue('--neon');
+            const colors = [color, '#ffffff', color, '#ff00ff', '#00fff5', '#39ff14', '#ffff00'];
+
+            for (let i = 0; i < 18; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'confetti';
+                const angle = (Math.PI * 2 * i) / 18 + (Math.random() - 0.5) * 0.5;
+                const dist = 40 + Math.random() * 80;
+                const dx = Math.cos(angle) * dist;
+                const dy = Math.sin(angle) * dist;
+                const size = 4 + Math.random() * 6;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = cx + 'px';
+                particle.style.top = cy + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.boxShadow = '0 0 6px ' + color;
+                particle.style.transition = 'left 0.8s ease-out, top 0.8s ease-out';
+                document.body.appendChild(particle);
+                requestAnimationFrame(() => {
+                    particle.style.left = (cx + dx) + 'px';
+                    particle.style.top = (cy + dy) + 'px';
+                });
+                setTimeout(() => particle.remove(), 850);
+            }
+        }
+
         function playSaying(saying, btn) {
+            // Confetti!
+            spawnConfetti(btn);
+
             // Cancel any in-progress TTS
             speechSynthesis.cancel();
 
@@ -511,6 +574,40 @@
             utterance.onend = () => btn.classList.remove('playing');
             utterance.onerror = () => btn.classList.remove('playing');
             speechSynthesis.speak(utterance);
+        }
+
+        // ─── Shake to Play Random Saying ───
+        const allBtns = document.querySelectorAll('.btn');
+        let lastShake = 0;
+        let lastAccel = { x: 0, y: 0, z: 0 };
+        const SHAKE_THRESHOLD = 25;
+        const SHAKE_COOLDOWN = 1000;
+
+        if (window.DeviceMotionEvent) {
+            // Show hint on mobile
+            const hint = document.getElementById('shakeHint');
+            if ('ontouchstart' in window) {
+                hint.textContent = 'Shake your phone for a random saying!';
+            }
+
+            window.addEventListener('devicemotion', (e) => {
+                const a = e.accelerationIncludingGravity;
+                if (!a) return;
+                const dx = Math.abs(a.x - lastAccel.x);
+                const dy = Math.abs(a.y - lastAccel.y);
+                const dz = Math.abs(a.z - lastAccel.z);
+                lastAccel = { x: a.x, y: a.y, z: a.z };
+
+                if ((dx + dy + dz) > SHAKE_THRESHOLD) {
+                    const now = Date.now();
+                    if (now - lastShake > SHAKE_COOLDOWN) {
+                        lastShake = now;
+                        const idx = Math.floor(Math.random() * sayings.length);
+                        const btn = allBtns[idx];
+                        playSaying(sayings[idx], btn);
+                    }
+                }
+            });
         }
     </script>
 </body>
