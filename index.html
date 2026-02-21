@@ -215,108 +215,66 @@
             }
         }
 
-        // ─── 80s Pop / New Jack Swing Background Music ───
-        // Inspired by: Bobby Brown, New Edition, Starship
+        // ─── 80s Freestyle / Hi-NRG Background Music ───
+        // Inspired by: The Cover Girls - Show Me
         let audioCtx = null;
         let musicPlaying = false;
         let musicInterval = null;
         const musicBtn = document.getElementById('musicToggle');
 
         const NOTE = {
-            Bb1: 58.27, F2: 87.31, G2: 98.00, Ab2: 103.83, Bb2: 116.54, C3: 130.81,
-            Db3: 138.59, Eb3: 155.56, F3: 174.61, G3: 196.00, Ab3: 207.65, Bb3: 233.08,
-            C4: 261.63, D4: 293.66, Eb4: 311.13, F4: 349.23, G4: 392.00, Ab4: 415.30,
-            Bb4: 466.16, C5: 523.25, D5: 587.33, Eb5: 622.25, F5: 698.46,
+            A2: 110.00, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81,
+            F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94, C4: 261.63,
+            D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00,
+            B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46,
+            G5: 783.99, A5: 880.00,
         };
 
-        // Synth note with bright filter (80s pop shimmer)
-        function playNote(freq, startTime, duration, type, volume, filterFreq) {
+        // Warm freestyle bass (round and bouncy)
+        function playBass(freq, time, duration) {
             const osc = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
+            const sub = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
-
-            osc.type = type || 'sawtooth';
-            osc.frequency.value = freq;
-            osc2.type = 'sawtooth';
-            osc2.frequency.value = freq;
-            osc2.detune.value = 12;
-
-            filter.type = 'lowpass';
-            filter.frequency.value = filterFreq || 3000;
-            filter.Q.value = 2;
-
-            gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(volume || 0.06, startTime + 0.01);
-            gain.gain.setValueAtTime(volume || 0.06, startTime + duration * 0.6);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-            osc.connect(filter);
-            osc2.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            osc.start(startTime);
-            osc.stop(startTime + duration);
-            osc2.start(startTime);
-            osc2.stop(startTime + duration);
-        }
-
-        // Funky bass with snap (New Jack Swing style)
-        function playBass(freq, startTime, duration) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
-
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq * 2, startTime);
-            osc.frequency.exponentialRampToValueAtTime(freq, startTime + 0.04);
-
+            osc.frequency.value = freq;
+            sub.type = 'sine';
+            sub.frequency.value = freq;
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(2000, startTime);
-            filter.frequency.exponentialRampToValueAtTime(500, startTime + 0.1);
-            filter.Q.value = 4;
-
-            gain.gain.setValueAtTime(0.18, startTime);
-            gain.gain.setValueAtTime(0.14, startTime + 0.04);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
+            filter.frequency.setValueAtTime(1200, time);
+            filter.frequency.exponentialRampToValueAtTime(400, time + duration * 0.5);
+            filter.Q.value = 3;
+            gain.gain.setValueAtTime(0.16, time);
+            gain.gain.setValueAtTime(0.12, time + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
             osc.connect(filter);
+            sub.connect(gain);
             filter.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.start(startTime);
-            osc.stop(startTime + duration);
+            osc.start(time);
+            osc.stop(time + duration);
+            sub.start(time);
+            sub.stop(time + duration);
         }
 
-        // Tight punchy kick (drum machine style)
+        // Four-on-the-floor kick (steady dance beat)
         function playKick(time) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(170, time);
-            osc.frequency.exponentialRampToValueAtTime(40, time + 0.08);
-            gain.gain.setValueAtTime(0.45, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+            osc.frequency.setValueAtTime(160, time);
+            osc.frequency.exponentialRampToValueAtTime(35, time + 0.1);
+            gain.gain.setValueAtTime(0.4, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start(time);
-            osc.stop(time + 0.2);
-            // Click transient
-            const click = audioCtx.createOscillator();
-            const clickGain = audioCtx.createGain();
-            click.type = 'square';
-            click.frequency.value = 800;
-            clickGain.gain.setValueAtTime(0.08, time);
-            clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.015);
-            click.connect(clickGain);
-            clickGain.connect(audioCtx.destination);
-            click.start(time);
-            click.stop(time + 0.015);
+            osc.stop(time + 0.25);
         }
 
-        // Crispy hi-hat with swing feel
+        // Tight electronic hi-hat (sixteenth notes)
         function playHiHat(time, vol, open) {
-            const len = open ? 0.12 : 0.04;
+            const len = open ? 0.1 : 0.03;
             const bufferSize = audioCtx.sampleRate * len;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
@@ -326,8 +284,8 @@
             const gain = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
             filter.type = 'highpass';
-            filter.frequency.value = 8500;
-            gain.gain.setValueAtTime(vol || 0.07, time);
+            filter.frequency.value = 9000;
+            gain.gain.setValueAtTime(vol || 0.05, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + len);
             src.connect(filter);
             filter.connect(gain);
@@ -336,63 +294,62 @@
             src.stop(time + len);
         }
 
-        // Big 80s snare with gated reverb feel
-        function playSnare(time) {
-            const bufferSize = audioCtx.sampleRate * 0.18;
+        // Electronic clap/snare on 2 and 4
+        function playClap(time) {
+            const bufferSize = audioCtx.sampleRate * 0.15;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
             const src = audioCtx.createBufferSource();
             src.buffer = buffer;
-            const noiseGain = audioCtx.createGain();
+            const gain = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
             filter.type = 'bandpass';
-            filter.frequency.value = 4000;
-            filter.Q.value = 0.8;
-            noiseGain.gain.setValueAtTime(0.22, time);
-            noiseGain.gain.setValueAtTime(0.18, time + 0.03);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+            filter.frequency.value = 3500;
+            filter.Q.value = 1.5;
+            // Multi-hit clap envelope
+            gain.gain.setValueAtTime(0.2, time);
+            gain.gain.setValueAtTime(0.05, time + 0.01);
+            gain.gain.setValueAtTime(0.2, time + 0.02);
+            gain.gain.setValueAtTime(0.05, time + 0.03);
+            gain.gain.setValueAtTime(0.18, time + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
             src.connect(filter);
-            filter.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
             src.start(time);
-            src.stop(time + 0.18);
-            // Snare body
+            src.stop(time + 0.15);
+        }
+
+        // Shimmering freestyle arpeggio note
+        function playArp(freq, time, duration) {
             const osc = audioCtx.createOscillator();
-            const oscGain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.value = 200;
-            oscGain.gain.setValueAtTime(0.18, time);
-            oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
-            osc.connect(oscGain);
-            oscGain.connect(audioCtx.destination);
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            osc.type = 'sawtooth';
+            osc.frequency.value = freq;
+            osc2.type = 'sawtooth';
+            osc2.frequency.value = freq;
+            osc2.detune.value = 8;
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(5000, time);
+            filter.frequency.exponentialRampToValueAtTime(2000, time + duration);
+            filter.Q.value = 3;
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(0.045, time + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+            osc.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
             osc.start(time);
-            osc.stop(time + 0.1);
+            osc.stop(time + duration);
+            osc2.start(time);
+            osc2.stop(time + duration);
         }
 
-        // Synth stab chord (like the brass/synth hits in New Jack Swing)
-        function playStab(freqs, time, duration) {
-            freqs.forEach(freq => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                const filter = audioCtx.createBiquadFilter();
-                osc.type = 'sawtooth';
-                osc.frequency.value = freq;
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(4000, time);
-                filter.frequency.exponentialRampToValueAtTime(1500, time + duration);
-                filter.Q.value = 1;
-                gain.gain.setValueAtTime(0.04, time);
-                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-                osc.connect(filter);
-                filter.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(time);
-                osc.stop(time + duration);
-            });
-        }
-
-        // Synth pad (lush 80s background wash)
+        // Lush string/pad wash
         function playPad(freqs, time, duration) {
             freqs.forEach(freq => {
                 const osc = audioCtx.createOscillator();
@@ -402,13 +359,13 @@
                 osc.type = 'sawtooth';
                 osc.frequency.value = freq;
                 osc2.type = 'sawtooth';
-                osc2.frequency.value = freq * 1.003;
+                osc2.frequency.value = freq * 1.004;
                 filter.type = 'lowpass';
-                filter.frequency.value = 1800;
-                filter.Q.value = 0.5;
+                filter.frequency.value = 2200;
+                filter.Q.value = 0.4;
                 gain.gain.setValueAtTime(0, time);
-                gain.gain.linearRampToValueAtTime(0.025, time + 0.15);
-                gain.gain.setValueAtTime(0.025, time + duration * 0.7);
+                gain.gain.linearRampToValueAtTime(0.022, time + 0.2);
+                gain.gain.setValueAtTime(0.022, time + duration * 0.75);
                 gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
                 osc.connect(filter);
                 osc2.connect(filter);
@@ -421,39 +378,31 @@
             });
         }
 
-        const BPM = 112;
+        // Conga/tom hit for Latin freestyle flavor
+        function playConga(time, freq) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq || 280, time);
+            osc.frequency.exponentialRampToValueAtTime((freq || 280) * 0.6, time + 0.08);
+            gain.gain.setValueAtTime(0.1, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + 0.12);
+        }
+
+        const BPM = 118;
         const BEAT = 60 / BPM;
-        const SWING = 0.66; // Swing ratio for New Jack Swing groove
+        const S16 = BEAT / 4; // Sixteenth note
 
-        // Chord progression: Bb - Gm - Eb - F (classic 80s pop)
+        // Chord progression: Am - F - G - Em (minor key freestyle feel)
         const chords = [
-            { bass: NOTE.Bb2, pad: [NOTE.Bb3, NOTE.D4, NOTE.F4], stab: [NOTE.Bb4, NOTE.D5, NOTE.F5] },
-            { bass: NOTE.G2,  pad: [NOTE.Bb3, NOTE.D4, NOTE.G4], stab: [NOTE.Bb4, NOTE.D5, NOTE.G4] },
-            { bass: NOTE.Eb3, pad: [NOTE.Eb4, NOTE.G4, NOTE.Bb4], stab: [NOTE.Eb5, NOTE.G4, NOTE.Bb4] },
-            { bass: NOTE.F2,  pad: [NOTE.F4, NOTE.Ab4, NOTE.C5], stab: [NOTE.F5, NOTE.Ab4, NOTE.C5] },
-        ];
-
-        // Funky bass patterns per chord (root, octave, ghost notes)
-        const bassPatterns = [
-            (root, t) => { // Pattern 1: bouncy
-                playBass(root, t, BEAT * 0.4);
-                playBass(root * 2, t + BEAT * 0.5, BEAT * 0.3);
-                playBass(root, t + BEAT, BEAT * 0.3);
-                playBass(root * 2, t + BEAT * 1.75, BEAT * 0.2);
-                playBass(root, t + BEAT * 2, BEAT * 0.5);
-                playBass(root * 0.75, t + BEAT * 2.5, BEAT * 0.3);
-                playBass(root, t + BEAT * 3, BEAT * 0.3);
-                playBass(root * 2, t + BEAT * 3.5, BEAT * 0.3);
-            },
-            (root, t) => { // Pattern 2: syncopated
-                playBass(root, t, BEAT * 0.6);
-                playBass(root * 2, t + BEAT * 0.75, BEAT * 0.2);
-                playBass(root, t + BEAT * 1.5, BEAT * 0.4);
-                playBass(root * 2, t + BEAT * 2, BEAT * 0.3);
-                playBass(root, t + BEAT * 2.5, BEAT * 0.4);
-                playBass(root * 0.84, t + BEAT * 3, BEAT * 0.25);
-                playBass(root, t + BEAT * 3.5, BEAT * 0.4);
-            },
+            { bass: NOTE.A2, pad: [NOTE.A3, NOTE.C4, NOTE.E4], arp: [NOTE.A4, NOTE.C5, NOTE.E5, NOTE.A5, NOTE.E5, NOTE.C5, NOTE.A4, NOTE.E4] },
+            { bass: NOTE.F3, pad: [NOTE.F3, NOTE.A3, NOTE.C4], arp: [NOTE.F4, NOTE.A4, NOTE.C5, NOTE.F5, NOTE.C5, NOTE.A4, NOTE.F4, NOTE.C4] },
+            { bass: NOTE.G3, pad: [NOTE.G3, NOTE.B3, NOTE.D4], arp: [NOTE.G4, NOTE.B4, NOTE.D5, NOTE.G5, NOTE.D5, NOTE.B4, NOTE.G4, NOTE.D4] },
+            { bass: NOTE.E3, pad: [NOTE.E3, NOTE.G3, NOTE.B3], arp: [NOTE.E4, NOTE.G4, NOTE.B4, NOTE.E5, NOTE.B4, NOTE.G4, NOTE.E4, NOTE.B3] },
         ];
 
         let barIndex = 0;
@@ -463,33 +412,48 @@
             const now = audioCtx.currentTime + 0.05;
             const chordIdx = barIndex % 4;
             const chord = chords[chordIdx];
-            const bassPattern = bassPatterns[barIndex % 2];
 
-            // Pad — sustained over the whole bar
+            // Pad — warm wash over the whole bar
             playPad(chord.pad, now, BEAT * 4);
 
-            // Funky bass pattern
-            bassPattern(chord.bass, now);
+            // Bass pattern — driving eighth-note freestyle bass
+            const b = chord.bass;
+            playBass(b, now, BEAT * 0.45);
+            playBass(b, now + BEAT * 0.5, BEAT * 0.35);
+            playBass(b, now + BEAT, BEAT * 0.45);
+            playBass(b * 2, now + BEAT * 1.5, BEAT * 0.25);
+            playBass(b, now + BEAT * 2, BEAT * 0.45);
+            playBass(b, now + BEAT * 2.5, BEAT * 0.35);
+            playBass(b * 1.335, now + BEAT * 3, BEAT * 0.35); // Walk up (fifth)
+            playBass(b * 1.498, now + BEAT * 3.5, BEAT * 0.35); // Walk up more
 
             for (let beat = 0; beat < 4; beat++) {
                 const t = now + beat * BEAT;
-                const swungOff = t + BEAT * SWING; // Swung offbeat
 
-                // Drums: kick on 1 & 3, snare on 2 & 4
-                if (beat === 0 || beat === 2) playKick(t);
-                if (beat === 1 || beat === 3) playSnare(t);
+                // Four-on-the-floor kick on every beat
+                playKick(t);
 
-                // Ghost kick before beat 3 for NJS feel
-                if (beat === 2) playKick(t - BEAT * 0.25);
+                // Clap on 2 and 4
+                if (beat === 1 || beat === 3) playClap(t);
 
-                // Hi-hats with swing
-                playHiHat(t, 0.06, false);
-                playHiHat(swungOff, 0.035, beat % 2 === 0);
+                // Sixteenth-note hi-hats (the freestyle signature)
+                for (let s = 0; s < 4; s++) {
+                    const ht = t + s * S16;
+                    const isDownbeat = s === 0;
+                    const isOpen = s === 2 && beat % 2 === 0;
+                    playHiHat(ht, isDownbeat ? 0.055 : 0.03, isOpen);
+                }
 
-                // Synth stab on offbeats (New Jack Swing signature)
-                if (beat === 0) playStab(chord.stab, t + BEAT * SWING, BEAT * 0.3);
-                if (beat === 2) playStab(chord.stab, t, BEAT * 0.25);
-                if (beat === 3) playStab(chord.stab, t + BEAT * SWING, BEAT * 0.3);
+                // Shimmering arpeggio — two notes per beat (eighth notes)
+                const arpIdx = beat * 2;
+                playArp(chord.arp[arpIdx], t, BEAT * 0.48);
+                playArp(chord.arp[arpIdx + 1], t + BEAT * 0.5, BEAT * 0.48);
+
+                // Conga pattern — freestyle Latin groove
+                if (beat === 0) playConga(t + BEAT * 0.5, 300);
+                if (beat === 1) { playConga(t, 260); playConga(t + BEAT * 0.75, 320); }
+                if (beat === 2) playConga(t + BEAT * 0.5, 300);
+                if (beat === 3) { playConga(t, 280); playConga(t + BEAT * 0.5, 340); }
             }
 
             barIndex++;
