@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jessie & Charlie's Soundboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow:
+                0 0 10px #ff00ff,
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff;
+        }
+
+        .music-toggle {
+            background: transparent;
+            border: 2px solid #ff00ff;
+            color: #ff00ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 10px 24px;
+            cursor: pointer;
+            border-radius: 30px;
+            margin-bottom: 24px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 8px rgba(255,0,255,0.3);
+            text-shadow: 0 0 6px #ff00ff;
+        }
+
+        .music-toggle:hover {
+            background: rgba(255,0,255,0.15);
+            box-shadow: 0 0 15px #ff00ff, 0 0 30px rgba(255,0,255,0.3);
+        }
+
+        .music-toggle.active {
+            background: #ff00ff;
+            color: #0a0a0a;
+            text-shadow: none;
+            box-shadow: 0 0 20px #ff00ff, 0 0 40px rgba(255,0,255,0.4);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .btn {
+            position: relative;
+            background: transparent;
+            border: 2px solid var(--neon);
+            color: var(--neon);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 28px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+            box-shadow:
+                0 0 8px var(--neon-dim),
+                inset 0 0 8px var(--neon-dim);
+            text-shadow: 0 0 6px var(--neon);
+            word-break: break-word;
+        }
+
+        .btn:hover {
+            background: var(--neon-dim);
+            box-shadow:
+                0 0 15px var(--neon),
+                0 0 30px var(--neon-dim),
+                inset 0 0 15px var(--neon-dim);
+            transform: scale(1.03);
+        }
+
+        .btn:active,
+        .btn.playing {
+            background: var(--neon);
+            color: #0a0a0a;
+            text-shadow: none;
+            transform: scale(0.97);
+            box-shadow:
+                0 0 20px var(--neon),
+                0 0 40px var(--neon),
+                0 0 60px var(--neon-dim);
+        }
+
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 20px var(--neon), 0 0 40px var(--neon); }
+            50%  { box-shadow: 0 0 30px var(--neon), 0 0 60px var(--neon), 0 0 80px var(--neon-dim); }
+            100% { box-shadow: 0 0 20px var(--neon), 0 0 40px var(--neon); }
+        }
+
+        .btn.playing {
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .btn {
+                padding: 22px 8px;
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Jessie & Charlie's Soundboard</h1>
+    <button class="music-toggle" id="musicToggle">&#9835; 80s Vibes: OFF</button>
+    <div class="grid" id="soundboard"></div>
+
+    <script>
+        const NEON_COLORS = [
+            { neon: '#00fff5', dim: 'rgba(0,255,245,0.15)' },   // cyan
+            { neon: '#ff00ff', dim: 'rgba(255,0,255,0.15)' },   // magenta
+            { neon: '#39ff14', dim: 'rgba(57,255,20,0.15)' },   // lime
+            { neon: '#ff6600', dim: 'rgba(255,102,0,0.15)' },   // orange
+            { neon: '#ff1493', dim: 'rgba(255,20,147,0.15)' },  // deep pink
+            { neon: '#ffff00', dim: 'rgba(255,255,0,0.15)' },   // yellow
+            { neon: '#7b68ee', dim: 'rgba(123,104,238,0.15)' }, // medium slate blue
+            { neon: '#00ff7f', dim: 'rgba(0,255,127,0.15)' },   // spring green
+        ];
+
+        const sayings = [
+            { text: '#blessed', audio: null },
+            { text: '#youcangetit', audio: null },
+            { text: '#extrasmile', audio: null },
+            { text: '#jessssssieee', audio: null },
+            { text: '#charllieeeee', audio: null },
+            { text: '#sogooood', audio: null },
+            { text: '#quarterzip', audio: null },
+            { text: '#f*ckyoukevin', audio: null },
+            { text: '#sundaysuper', audio: null },
+            { text: '#whoneedssleep', audio: null },
+            { text: '#draksab*tcha*sshoe', audio: null },
+            { text: '#roséallday', audio: null },
+            { text: '#serendipitous', audio: null },
+            { text: '#haveablessedday', audio: null },
+            { text: '#ultrabightbeamlight', audio: null },
+            { text: '#couchs*x', audio: null },
+        ];
+
+        const grid = document.getElementById('soundboard');
+
+        sayings.forEach((saying, i) => {
+            const color = NEON_COLORS[i % NEON_COLORS.length];
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.textContent = saying.text;
+            btn.style.setProperty('--neon', color.neon);
+            btn.style.setProperty('--neon-dim', color.dim);
+
+            btn.addEventListener('click', () => playSaying(saying, btn));
+            grid.appendChild(btn);
+        });
+
+        function playSaying(saying, btn) {
+            // Cancel any in-progress TTS
+            speechSynthesis.cancel();
+
+            // Remove playing class from all buttons
+            document.querySelectorAll('.btn.playing').forEach(b => b.classList.remove('playing'));
+
+            if (saying.audio) {
+                const audio = new Audio(saying.audio);
+                btn.classList.add('playing');
+                audio.play();
+                audio.addEventListener('ended', () => btn.classList.remove('playing'));
+                audio.addEventListener('error', () => {
+                    // Fallback to TTS if audio fails
+                    btn.classList.remove('playing');
+                    speakText(saying.text, btn);
+                });
+            } else {
+                speakText(saying.text, btn);
+            }
+        }
+
+        // ─── 80s Synthwave Background Music ───
+        let audioCtx = null;
+        let musicPlaying = false;
+        let musicInterval = null;
+        const musicBtn = document.getElementById('musicToggle');
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Note frequencies
+        const NOTE = {
+            C2: 65.41, D2: 73.42, E2: 82.41, F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
+            C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+            C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+            C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99,
+        };
+
+        // Play a synth note
+        function playNote(freq, startTime, duration, type, volume, detune) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            osc.type = type || 'sawtooth';
+            osc.frequency.value = freq;
+            if (detune) osc.detune.value = detune;
+
+            filter.type = 'lowpass';
+            filter.frequency.value = 1200;
+            filter.Q.value = 5;
+
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(volume || 0.08, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
+        // Play a kick drum
+        function playKick(time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, time);
+            osc.frequency.exponentialRampToValueAtTime(30, time + 0.15);
+            gain.gain.setValueAtTime(0.4, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + 0.3);
+        }
+
+        // Play a hi-hat
+        function playHiHat(time, vol) {
+            const bufferSize = audioCtx.sampleRate * 0.05;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 7000;
+            gain.gain.setValueAtTime(vol || 0.06, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+            src.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            src.start(time);
+            src.stop(time + 0.06);
+        }
+
+        // Play a snare
+        function playSnare(time) {
+            const bufferSize = audioCtx.sampleRate * 0.12;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            const noiseGain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 3000;
+            noiseGain.gain.setValueAtTime(0.15, time);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+            src.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            src.start(time);
+            src.stop(time + 0.12);
+
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = 180;
+            oscGain.gain.setValueAtTime(0.12, time);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + 0.08);
+        }
+
+        const BPM = 120;
+        const BEAT = 60 / BPM;
+        const SIXTEENTH = BEAT / 4;
+
+        // Chord progression: Am - F - C - G (classic 80s)
+        const bassLine = [
+            [NOTE.A2, NOTE.A2, NOTE.A2, NOTE.A2],
+            [NOTE.F2, NOTE.F2, NOTE.F2, NOTE.F2],
+            [NOTE.C3, NOTE.C3, NOTE.C3, NOTE.C3],
+            [NOTE.G2, NOTE.G2, NOTE.G2, NOTE.G2],
+        ];
+
+        const arpPatterns = [
+            [NOTE.A4, NOTE.C5, NOTE.E5, NOTE.C5, NOTE.A4, NOTE.E4, NOTE.C4, NOTE.E4],
+            [NOTE.F4, NOTE.A4, NOTE.C5, NOTE.A4, NOTE.F4, NOTE.C4, NOTE.A3, NOTE.C4],
+            [NOTE.C4, NOTE.E4, NOTE.G4, NOTE.E4, NOTE.C5, NOTE.G4, NOTE.E4, NOTE.G4],
+            [NOTE.G3, NOTE.B3, NOTE.D4, NOTE.G4, NOTE.B4, NOTE.G4, NOTE.D4, NOTE.B3],
+        ];
+
+        let barIndex = 0;
+
+        function scheduleBar() {
+            if (!musicPlaying) return;
+            const now = audioCtx.currentTime + 0.05;
+            const chordIdx = barIndex % 4;
+            const bass = bassLine[chordIdx];
+            const arp = arpPatterns[chordIdx];
+
+            for (let beat = 0; beat < 4; beat++) {
+                const t = now + beat * BEAT;
+
+                // Bass
+                playNote(bass[beat], t, BEAT * 0.9, 'sawtooth', 0.1, 7);
+
+                // Kick on 1 & 3, snare on 2 & 4
+                if (beat === 0 || beat === 2) playKick(t);
+                if (beat === 1 || beat === 3) playSnare(t);
+
+                // Hi-hats on every eighth note
+                playHiHat(t, 0.04);
+                playHiHat(t + BEAT / 2, 0.025);
+
+                // Arpeggio — two notes per beat
+                const arpIdx = beat * 2;
+                playNote(arp[arpIdx], t, BEAT / 2 * 0.8, 'square', 0.04, 5);
+                playNote(arp[arpIdx + 1], t + BEAT / 2, BEAT / 2 * 0.8, 'square', 0.04, 5);
+            }
+
+            barIndex++;
+        }
+
+        function startMusic() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            musicPlaying = true;
+            barIndex = 0;
+            scheduleBar();
+            musicInterval = setInterval(scheduleBar, BEAT * 4 * 1000);
+            musicBtn.textContent = '\u266B 80s Vibes: ON';
+            musicBtn.classList.add('active');
+        }
+
+        function stopMusic() {
+            musicPlaying = false;
+            clearInterval(musicInterval);
+            musicBtn.textContent = '\u266B 80s Vibes: OFF';
+            musicBtn.classList.remove('active');
+        }
+
+        musicBtn.addEventListener('click', () => {
+            if (musicPlaying) stopMusic();
+            else startMusic();
+        });
+
+        // Pick a fun voice (prefer novelty/non-default voices)
+        let funVoice = null;
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            // Prefer fun/quirky voices, fall back to any non-default
+            const preferred = ['Zarvox', 'Trinoids', 'Cellos', 'Boing', 'Whisper', 'Wobble', 'Bad News', 'Bells', 'Good News', 'Bahh'];
+            for (const name of preferred) {
+                const match = voices.find(v => v.name === name);
+                if (match) { funVoice = match; return; }
+            }
+            // Fallback: pick a higher-pitched or non-default voice
+            const nonDefault = voices.find(v => !v.default && v.lang.startsWith('en'));
+            if (nonDefault) funVoice = nonDefault;
+        }
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function speakText(text, btn) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (funVoice) utterance.voice = funVoice;
+            utterance.rate = 1.1;
+            utterance.pitch = 1.4;
+            btn.classList.add('playing');
+            utterance.onend = () => btn.classList.remove('playing');
+            utterance.onerror = () => btn.classList.remove('playing');
+            speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
