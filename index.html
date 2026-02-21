@@ -575,8 +575,8 @@
         function speakText(text, btn) {
             const utterance = new SpeechSynthesisUtterance(text);
             if (madonnaVoice) utterance.voice = madonnaVoice;
-            utterance.rate = 0.95;   // Slightly slow, confident delivery
-            utterance.pitch = 1.6;   // Higher pitch, Madonna-like
+            utterance.rate = 1.0;    // Natural speaking rate for clarity
+            utterance.pitch = 1.25;  // Feminine pitch, clear pronunciation
             btn.classList.add('playing');
             utterance.onend = () => btn.classList.remove('playing');
             utterance.onerror = () => btn.classList.remove('playing');
