@@ -548,28 +548,35 @@
             else startMusic();
         });
 
-        // Pick a fun voice (prefer novelty/non-default voices)
-        let funVoice = null;
+        // Pick a female voice to sound like Madonna
+        let madonnaVoice = null;
         function loadVoices() {
             const voices = speechSynthesis.getVoices();
-            // Prefer fun/quirky voices, fall back to any non-default
-            const preferred = ['Zarvox', 'Trinoids', 'Cellos', 'Boing', 'Whisper', 'Wobble', 'Bad News', 'Bells', 'Good News', 'Bahh'];
+            // Prefer female English voices that sound confident/breathy
+            const preferred = [
+                'Samantha', 'Karen', 'Moira', 'Tessa', 'Victoria',  // macOS
+                'Microsoft Zira', 'Microsoft Jenny', 'Microsoft Aria', // Windows
+                'Google US English', 'Google UK English Female',       // Chrome
+            ];
             for (const name of preferred) {
-                const match = voices.find(v => v.name === name);
-                if (match) { funVoice = match; return; }
+                const match = voices.find(v => v.name.includes(name));
+                if (match) { madonnaVoice = match; return; }
             }
-            // Fallback: pick a higher-pitched or non-default voice
-            const nonDefault = voices.find(v => !v.default && v.lang.startsWith('en'));
-            if (nonDefault) funVoice = nonDefault;
+            // Fallback: any female-sounding English voice (avoid male names)
+            const maleNames = ['David', 'James', 'Daniel', 'Alex', 'Fred', 'Mark', 'Guy'];
+            const femaleVoice = voices.find(v =>
+                v.lang.startsWith('en') && !maleNames.some(m => v.name.includes(m))
+            );
+            if (femaleVoice) madonnaVoice = femaleVoice;
         }
         speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
         function speakText(text, btn) {
             const utterance = new SpeechSynthesisUtterance(text);
-            if (funVoice) utterance.voice = funVoice;
-            utterance.rate = 1.1;
-            utterance.pitch = 1.4;
+            if (madonnaVoice) utterance.voice = madonnaVoice;
+            utterance.rate = 0.95;   // Slightly slow, confident delivery
+            utterance.pitch = 1.6;   // Higher pitch, Madonna-like
             btn.classList.add('playing');
             utterance.onend = () => btn.classList.remove('playing');
             utterance.onerror = () => btn.classList.remove('playing');
