@@ -152,6 +152,37 @@
             text-align: center;
         }
 
+        .bonus-btn {
+            background: transparent;
+            border: 2px solid #ffff00;
+            color: #ffff00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 14px 40px;
+            cursor: pointer;
+            border-radius: 30px;
+            margin-top: 20px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(255,255,0,0.3);
+            text-shadow: 0 0 8px #ffff00;
+        }
+
+        .bonus-btn:hover {
+            background: rgba(255,255,0,0.15);
+            box-shadow: 0 0 20px #ffff00, 0 0 40px rgba(255,255,0,0.3);
+            transform: scale(1.05);
+        }
+
+        .bonus-btn:active {
+            background: #ffff00;
+            color: #0a0a0a;
+            text-shadow: none;
+            transform: scale(0.97);
+        }
+
         @media (max-width: 600px) {
             h1 {
                 font-size: 1.1rem;
@@ -174,6 +205,7 @@
     <h1>Jessie & Charlie's Soundboard</h1>
     <button class="music-toggle" id="musicToggle">&#9835; 80s Vibes: OFF</button>
     <div class="grid" id="soundboard"></div>
+    <button class="bonus-btn" id="bonusBtn">&#9733; BONUS &#9733;</button>
     <div class="shake-hint" id="shakeHint"></div>
 
     <script>
@@ -616,6 +648,21 @@
                 }
             });
         }
+        // ─── Bonus Button — Shuffle YouTube Songs ───
+        const bonusSongs = [
+            { title: 'Bobby Brown - Every Little Step', url: 'https://www.youtube.com/watch?v=P0FKzPfsxA4' },
+            { title: 'New Edition - If It Isn\'t Love', url: 'https://www.youtube.com/watch?v=ReI6gvzVP0Y' },
+            { title: 'Starship - Nothing\'s Gonna Stop Us Now', url: 'https://www.youtube.com/watch?v=3wxyN3z9PL4' },
+            { title: 'Lime - Angel Eyes', url: 'https://www.youtube.com/results?search_query=Lime+Angel+Eyes+official' },
+            { title: 'Stevie B - Spring Love', url: 'https://www.youtube.com/watch?v=DsQtMK4P9Rg' },
+            { title: 'Cover Girls - Show Me', url: 'https://www.youtube.com/watch?v=MVITiigOQ-g' },
+        ];
+
+        const bonusBtn = document.getElementById('bonusBtn');
+        bonusBtn.addEventListener('click', () => {
+            const song = bonusSongs[Math.floor(Math.random() * bonusSongs.length)];
+            window.open(song.url, '_blank');
+        });
     </script>
 </body>
 </html>
